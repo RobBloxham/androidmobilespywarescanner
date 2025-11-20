@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Spyware Scanner</string>
+
+    <!-- Onboarding -->
+    <string name="onboarding_welcome">Welcome to Spyware Scanner</string>
+    <string name="onboarding_subtitle">AI-Powered Protection for Your Device</string>
+    <string name="onboarding_feature_1">Detect hidden spyware and tracking apps</string>
+    <string name="onboarding_feature_2">Analyze suspicious permissions</string>
+    <string name="onboarding_feature_3">Real-time threat monitoring</string>
+    <string name="onboarding_feature_4">Step-by-step removal guides</string>
+    <string name="onboarding_permissions_title">Grant Permissions</string>
+    <string name="onboarding_permissions_desc">To protect your device, we need access to scan installed apps</string>
+    <string name="get_started">Get Started</string>
+    <string name="continue_text">Continue</string>
+    <string name="skip">Skip</string>
+    <string name="grant_permissions">Grant Permissions</string>
+
+    <!-- Scanner -->
+    <string name="scanner_title">Security Scanner</string>
+    <string name="start_scan">Start Scan</string>
+    <string name="stop_scan">Stop Scan</string>
+    <string name="scanning">Scanning…</string>
+    <string name="scan_complete">Scan Complete</string>
+    <string name="last_scan">Last scan: %s</string>
+    <string name="never_scanned">Never scanned</string>
+    <string name="apps_scanned">Apps Scanned</string>
+    <string name="threats_found">Threats Found</string>
+    <string name="security_score">Security Score</string>
+    <string name="quick_scan">Quick Scan</string>
+    <string name="deep_scan">Deep Scan</string>
+    <string name="custom_scan">Custom Scan</string>
+
+    <!-- Results -->
+    <string name="results_title">Scan Results</string>
+    <string name="no_threats">No Threats Detected</string>
+    <string name="threats_detected">%d Threats Detected</string>
+    <string name="threat_level_low">Low Risk</string>
+    <string name="threat_level_medium">Medium Risk</string>
+    <string name="threat_level_high">High Risk</string>
+    <string name="threat_level_critical">Critical Risk</string>
+    <string name="view_details">View Details</string>
+    <string name="remove_threat">Remove Threat</string>
+    <string name="ignore_threat">Ignore</string>
+
+    <!-- Alerts -->
+    <string name="alerts_title">Alerts</string>
+    <string name="no_alerts">No alerts</string>
+    <string name="clear_all">Clear All</string>
+    <string name="alert_new_threat">New Threat Detected</string>
+    <string name="alert_permission_change">Permission Change Detected</string>
+    <string name="alert_new_install">New App Installation</string>
+
+    <!-- Reports -->
+    <string name="reports_title">Security Reports</string>
+    <string name="weekly_report">Weekly Report</string>
+    <string name="monthly_report">Monthly Report</string>
+    <string name="export_report">Export Report</string>
+    <string name="threats_blocked">Threats Blocked</string>
+    <string name="scans_performed">Scans Performed</string>
+    <string name="apps_analyzed">Apps Analyzed</string>
+
+    <!-- Settings -->
+    <string name="settings_title">Settings</string>
+    <string name="general">General</string>
+    <string name="scanning_options">Scanning Options</string>
+    <string name="notifications">Notifications</string>
+    <string name="premium">Premium</string>
+    <string name="about">About</string>
+    <string name="auto_scan">Automatic Scanning</string>
+    <string name="scan_frequency">Scan Frequency</string>
+    <string name="real_time_protection">Real-time Protection</string>
+    <string name="dark_mode">Dark Mode</string>
+    <string name="language">Language</string>
+    <string name="upgrade_premium">Upgrade to Premium</string>
+    <string name="restore_purchases">Restore Purchases</string>
+    <string name="privacy_policy">Privacy Policy</string>
+    <string name="terms_of_service">Terms of Service</string>
+    <string name="version">Version</string>
+
+    <!-- Premium -->
+    <string name="premium_title">Premium Features</string>
+    <string name="premium_feature_1">Advanced AI Detection</string>
+    <string name="premium_feature_2">Real-time Protection</string>
+    <string name="premium_feature_3">Detailed Reports</string>
+    <string name="premium_feature_4">Priority Support</string>
+    <string name="premium_price">$4.99/month</string>
+    <string name="subscribe_now">Subscribe Now</string>
+
+    <!-- Removal Guide -->
+    <string name="removal_guide">Removal Guide</string>
+    <string name="step_by_step">Step-by-Step Instructions</string>
+    <string name="mark_complete">Mark as Complete</string>
+
+    <!-- Common -->
+    <string name="ok">OK</string>
+    <string name="cancel">Cancel</string>
+    <string name="close">Close</string>
+    <string name="retry">Retry</string>
+    <string name="error">Error</string>
+    <string name="loading">Loading…</string>
+
+    <!-- Navigation -->
+    <string name="nav_scanner">Scanner</string>
+    <string name="nav_alerts">Alerts</string>
+    <string name="nav_reports">Reports</string>
+    <string name="nav_settings">Settings</string>
+</resources>
