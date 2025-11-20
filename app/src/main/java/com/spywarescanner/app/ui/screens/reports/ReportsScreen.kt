@@ -25,6 +25,8 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -42,6 +44,8 @@ fun ReportsScreen(
     onNavigateToPremium: () -> Unit,
     viewModel: ReportsViewModel = hiltViewModel()
 ) {
+    val uiState by viewModel.uiState.collectAsState()
+
     Scaffold(
         topBar = {
             TopAppBar(
@@ -77,14 +81,14 @@ fun ReportsScreen(
             ) {
                 StatCard(
                     title = "Scans",
-                    value = "3",
+                    value = uiState.weeklyScans.toString(),
                     modifier = Modifier.weight(1f)
                 )
                 StatCard(
                     title = "Threats",
-                    value = "0",
+                    value = uiState.weeklyThreats.toString(),
                     modifier = Modifier.weight(1f),
-                    valueColor = CyberColors.Safe
+                    valueColor = if (uiState.weeklyThreats > 0) CyberColors.ThreatHigh else CyberColors.Safe
                 )
             }
 
@@ -96,12 +100,12 @@ fun ReportsScreen(
             ) {
                 StatCard(
                     title = "Apps Checked",
-                    value = "127",
+                    value = uiState.totalAppsChecked.toString(),
                     modifier = Modifier.weight(1f)
                 )
                 StatCard(
                     title = "Security Score",
-                    value = "95",
+                    value = uiState.averageSecurityScore.toString(),
                     modifier = Modifier.weight(1f)
                 )
             }
@@ -133,14 +137,25 @@ fun ReportsScreen(
                     Spacer(modifier = Modifier.weight(1f))
 
                     Column(horizontalAlignment = Alignment.End) {
+                        val improvementText = when {
+                            uiState.securityImprovement > 0 -> "+${uiState.securityImprovement}"
+                            uiState.securityImprovement < 0 -> "${uiState.securityImprovement}"
+                            else -> "0"
+                        }
+                        val improvementColor = when {
+                            uiState.securityImprovement > 0 -> CyberColors.NeonGreen
+                            uiState.securityImprovement < 0 -> CyberColors.ThreatHigh
+                            else -> CyberColors.TextSecondary
+                        }
+
                         Text(
-                            text = "+5%",
+                            text = improvementText,
                             style = MaterialTheme.typography.titleLarge,
                             fontWeight = FontWeight.Bold,
-                            color = CyberColors.NeonGreen
+                            color = improvementColor
                         )
                         Text(
-                            text = "Security improved",
+                            text = if (uiState.securityImprovement >= 0) "Security improved" else "Security decreased",
                             style = MaterialTheme.typography.bodySmall,
                             color = CyberColors.TextSecondary
                         )
