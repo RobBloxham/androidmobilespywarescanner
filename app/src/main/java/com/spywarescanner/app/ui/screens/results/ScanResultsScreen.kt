@@ -54,7 +54,7 @@ fun ScanResultsScreen(
     scanId: Long,
     onNavigateBack: () -> Unit,
     onNavigateToThreatDetails: (String) -> Unit,
-    onNavigateToRemovalGuide: (Long) -> Unit,
+    onNavigateToRemovalGuide: (String) -> Unit,
     viewModel: ScanResultsViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()

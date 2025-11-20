@@ -31,6 +31,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -40,6 +41,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.spywarescanner.app.ui.components.CyberCard
 import com.spywarescanner.app.ui.components.GlowingButton
 import com.spywarescanner.app.ui.theme.CyberColors
@@ -47,22 +49,11 @@ import com.spywarescanner.app.ui.theme.CyberColors
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun RemovalGuideScreen(
-    threatId: Long,
-    onNavigateBack: () -> Unit
+    packageName: String,
+    onNavigateBack: () -> Unit,
+    viewModel: RemovalGuideViewModel = hiltViewModel()
 ) {
-    val removalSteps = remember {
-        listOf(
-            "Open your device Settings",
-            "Navigate to Apps or Application Manager",
-            "Find and tap on the suspicious app",
-            "Tap 'Uninstall' or 'Disable' button",
-            "Confirm the uninstallation when prompted",
-            "Clear any remaining data and cache",
-            "Restart your device to ensure complete removal",
-            "Run another scan to verify the threat is removed"
-        )
-    }
-
+    val uiState by viewModel.uiState.collectAsState()
     var completedSteps by remember { mutableStateOf(setOf<Int>()) }
 
     Scaffold(
@@ -116,7 +107,7 @@ fun RemovalGuideScreen(
 
                         Column {
                             Text(
-                                text = "Threat Removal",
+                                text = uiState.app?.appName ?: "Threat Removal",
                                 style = MaterialTheme.typography.titleMedium,
                                 fontWeight = FontWeight.Bold,
                                 color = CyberColors.TextPrimary
@@ -142,7 +133,7 @@ fun RemovalGuideScreen(
                 Spacer(modifier = Modifier.height(12.dp))
             }
 
-            itemsIndexed(removalSteps) { index, step ->
+            itemsIndexed(uiState.removalSteps) { index, step ->
                 RemovalStepCard(
                     stepNumber = index + 1,
                     description = step,
@@ -161,7 +152,7 @@ fun RemovalGuideScreen(
             item {
                 Spacer(modifier = Modifier.height(16.dp))
 
-                if (completedSteps.size == removalSteps.size) {
+                if (completedSteps.size == uiState.removalSteps.size && uiState.removalSteps.isNotEmpty()) {
                     GlowingButton(
                         text = "Threat Removed",
                         onClick = onNavigateBack,

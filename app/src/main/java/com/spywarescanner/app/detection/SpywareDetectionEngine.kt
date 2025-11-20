@@ -21,10 +21,24 @@ data class AppAnalysisResult(
 class SpywareDetectionEngine @Inject constructor(
     @ApplicationContext private val context: Context
 ) {
-    // Known spyware package patterns
+    // Whitelist of legitimate app packages that shouldn't be flagged
+    private val trustedPackages = setOf(
+        // Google apps
+        "com.google.android", "com.android", "com.google",
+        // Samsung
+        "com.samsung", "com.sec.android",
+        // System
+        "android", "system",
+        // Popular legitimate apps
+        "com.whatsapp", "com.facebook", "com.instagram", "com.twitter",
+        "com.spotify", "com.netflix", "com.amazon", "com.uber",
+        "com.snapchat", "com.tiktok", "com.discord", "com.telegram",
+        "com.microsoft", "com.apple", "org.mozilla", "com.opera"
+    )
+
+    // Known spyware package patterns (more specific)
     private val spywarePatterns = listOf(
-        "spy", "track", "monitor", "stealth", "hidden", "invisible",
-        "keylog", "recorder", "stalker", "surveillance"
+        "spyware", "stalkerware", "keylogger", "spycam"
     )
 
     // Known malicious packages (simplified for demo)
@@ -72,6 +86,11 @@ class SpywareDetectionEngine @Inject constructor(
         val appName = packageManager.getApplicationLabel(appInfo).toString()
         val isSystemApp = (appInfo.flags and ApplicationInfo.FLAG_SYSTEM) != 0
 
+        // Skip analysis for trusted packages
+        if (trustedPackages.any { packageName.startsWith(it) }) {
+            return createSafeResult(packageName, appName, packageManager, appInfo)
+        }
+
         // Get package info with permissions
         val packageInfo = try {
             packageManager.getPackageInfo(packageName, PackageManager.GET_PERMISSIONS)
@@ -85,66 +104,65 @@ class SpywareDetectionEngine @Inject constructor(
         // Calculate risk score and detect threats
         val threats = mutableListOf<Threat>()
         var riskScore = 0
+        var redFlags = 0 // Count of serious issues
 
         // Check for known malicious packages
         if (packageName in knownMaliciousPackages) {
             riskScore += 100
+            redFlags += 3
             threats.add(createThreat(packageName, appName, ThreatType.SPYWARE, ThreatLevel.CRITICAL,
                 "This app is identified as known spyware"))
         }
 
-        // Check package name for suspicious patterns
+        // Check package name for suspicious patterns (more specific)
         val matchedPatterns = spywarePatterns.filter {
             packageName.lowercase().contains(it) || appName.lowercase().contains(it)
         }
         if (matchedPatterns.isNotEmpty()) {
-            riskScore += matchedPatterns.size * 20
-            threats.add(createThreat(packageName, appName, ThreatType.SUSPICIOUS_PERMISSIONS, ThreatLevel.HIGH,
-                "App name or package contains suspicious keywords: ${matchedPatterns.joinToString(", ")}"))
+            riskScore += 40
+            redFlags += 2
+            threats.add(createThreat(packageName, appName, ThreatType.SPYWARE, ThreatLevel.CRITICAL,
+                "App name contains spyware indicators: ${matchedPatterns.joinToString(", ")}"))
         }
 
-        // Check for dangerous permissions
-        val dangerousCount = suspiciousPermissions.size
-        riskScore += dangerousCount * 5
-
-        // Check for spyware permission combinations
+        // Check for HIGH-RISK spyware permission combinations (all permissions must be present)
         for (combo in spywarePermissionCombos) {
-            if (suspiciousPermissions.containsAll(combo)) {
-                riskScore += 30
+            if (requestedPermissions.containsAll(combo)) {
+                riskScore += 35
+                redFlags += 1
                 val comboDescription = combo.map { it.substringAfterLast(".") }.joinToString(", ")
                 threats.add(createThreat(packageName, appName, ThreatType.TRACKING, ThreatLevel.HIGH,
-                    "Suspicious permission combination detected: $comboDescription"))
+                    "Dangerous permission combination: $comboDescription"))
                 break // Only count one combo
             }
         }
 
-        // Check if app has accessibility service (potential keylogger)
-        if ("android.permission.BIND_ACCESSIBILITY_SERVICE" in requestedPermissions) {
-            if (!isSystemApp) {
-                riskScore += 25
-                threats.add(createThreat(packageName, appName, ThreatType.KEYLOGGER, ThreatLevel.MEDIUM,
-                    "App has accessibility service access which could be used for keylogging"))
-            }
-        }
-
-        // Check if app is hidden from launcher
+        // Check if app is hidden from launcher (very suspicious if not a system app)
         val launchIntent = packageManager.getLaunchIntentForPackage(packageName)
         if (launchIntent == null && !isSystemApp) {
+            riskScore += 25
+            redFlags += 1
+            threats.add(createThreat(packageName, appName, ThreatType.HIDDEN_APP, ThreatLevel.HIGH,
+                "App is hidden from launcher - potential spyware"))
+        }
+
+        // Check if app has accessibility service (only flag if combined with other suspicious factors)
+        val hasAccessibilityService = "android.permission.BIND_ACCESSIBILITY_SERVICE" in requestedPermissions
+        if (hasAccessibilityService && !isSystemApp && redFlags > 0) {
+            riskScore += 20
+            threats.add(createThreat(packageName, appName, ThreatType.KEYLOGGER, ThreatLevel.MEDIUM,
+                "Has accessibility service with other suspicious factors"))
+        }
+
+        // Check for notification listener (only flag if not a legitimate messaging/notification app)
+        val hasNotificationListener = "android.permission.BIND_NOTIFICATION_LISTENER_SERVICE" in requestedPermissions
+        if (hasNotificationListener && !isSystemApp && !isLikelyMessagingApp(packageName, appName)) {
             riskScore += 15
-            threats.add(createThreat(packageName, appName, ThreatType.HIDDEN_APP, ThreatLevel.MEDIUM,
-                "App is hidden from app launcher"))
+            threats.add(createThreat(packageName, appName, ThreatType.DATA_HARVESTER, ThreatLevel.MEDIUM,
+                "Can read all notifications without clear justification"))
         }
 
-        // Check for notification listener (can read all notifications)
-        if ("android.permission.BIND_NOTIFICATION_LISTENER_SERVICE" in requestedPermissions) {
-            if (!isSystemApp) {
-                riskScore += 20
-                threats.add(createThreat(packageName, appName, ThreatType.DATA_HARVESTER, ThreatLevel.MEDIUM,
-                    "App can read all your notifications"))
-            }
-        }
-
-        // Check install source for unknown sources
+        // Check install source for unknown sources (only minor concern)
         val installSource = try {
             if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.R) {
                 packageManager.getInstallSourceInfo(packageName).installingPackageName
@@ -156,10 +174,11 @@ class SpywareDetectionEngine @Inject constructor(
             null
         }
 
-        if (installSource == null && !isSystemApp) {
+        val isFromPlayStore = installSource?.contains("com.android.vending") == true
+        if (installSource == null && !isSystemApp && redFlags > 0) {
             riskScore += 10
             threats.add(createThreat(packageName, appName, ThreatType.UNKNOWN_SOURCE, ThreatLevel.LOW,
-                "App was installed from an unknown source"))
+                "Sideloaded app with suspicious characteristics"))
         }
 
         // Determine overall threat level
@@ -194,6 +213,47 @@ class SpywareDetectionEngine @Inject constructor(
         )
 
         return AppAnalysisResult(scannedApp, threats)
+    }
+
+    private fun createSafeResult(
+        packageName: String,
+        appName: String,
+        packageManager: PackageManager,
+        appInfo: ApplicationInfo
+    ): AppAnalysisResult {
+        val packageInfo = try {
+            packageManager.getPackageInfo(packageName, PackageManager.GET_PERMISSIONS)
+        } catch (e: Exception) {
+            null
+        }
+
+        val scannedApp = ScannedApp(
+            packageName = packageName,
+            appName = appName,
+            versionName = packageInfo?.versionName ?: "Unknown",
+            versionCode = packageInfo?.longVersionCode ?: 0,
+            installTime = packageInfo?.firstInstallTime ?: 0,
+            lastUpdateTime = packageInfo?.lastUpdateTime ?: 0,
+            isSystemApp = (appInfo.flags and ApplicationInfo.FLAG_SYSTEM) != 0,
+            threatLevel = ThreatLevel.SAFE,
+            threatTypes = emptyList(),
+            suspiciousPermissions = emptyList(),
+            riskScore = 0,
+            lastScanned = LocalDateTime.now()
+        )
+
+        return AppAnalysisResult(scannedApp, emptyList())
+    }
+
+    private fun isLikelyMessagingApp(packageName: String, appName: String): Boolean {
+        val messagingKeywords = listOf(
+            "message", "sms", "chat", "mail", "email", "notification",
+            "messenger", "telegram", "signal", "whatsapp"
+        )
+
+        return messagingKeywords.any {
+            packageName.lowercase().contains(it) || appName.lowercase().contains(it)
+        }
     }
 
     private fun createThreat(
