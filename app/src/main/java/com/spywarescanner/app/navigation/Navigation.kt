@@ -21,8 +21,8 @@ sealed class Screen(val route: String) {
     object Reports : Screen("reports")
     object Settings : Screen("settings")
     object Premium : Screen("premium")
-    object RemovalGuide : Screen("removal_guide/{threatId}") {
-        fun createRoute(threatId: Long) = "removal_guide/$threatId"
+    object RemovalGuide : Screen("removal_guide/{packageName}") {
+        fun createRoute(packageName: String) = "removal_guide/$packageName"
     }
     object ThreatDetails : Screen("threat_details/{packageName}") {
         fun createRoute(packageName: String) = "threat_details/$packageName"

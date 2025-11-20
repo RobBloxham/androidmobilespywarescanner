@@ -59,8 +59,8 @@ fun NavGraph(
                 onNavigateToThreatDetails = { packageName ->
                     navController.navigate(Screen.ThreatDetails.createRoute(packageName))
                 },
-                onNavigateToRemovalGuide = { threatId ->
-                    navController.navigate(Screen.RemovalGuide.createRoute(threatId))
+                onNavigateToRemovalGuide = { pkg ->
+                    navController.navigate(Screen.RemovalGuide.createRoute(pkg))
                 }
             )
         }
@@ -98,12 +98,12 @@ fun NavGraph(
         composable(
             route = Screen.RemovalGuide.route,
             arguments = listOf(
-                navArgument("threatId") { type = NavType.LongType }
+                navArgument("packageName") { type = NavType.StringType }
             )
         ) { backStackEntry ->
-            val threatId = backStackEntry.arguments?.getLong("threatId") ?: 0
+            val packageName = backStackEntry.arguments?.getString("packageName") ?: ""
             RemovalGuideScreen(
-                threatId = threatId,
+                packageName = packageName,
                 onNavigateBack = { navController.popBackStack() }
             )
         }
@@ -118,8 +118,8 @@ fun NavGraph(
             ThreatDetailsScreen(
                 packageName = packageName,
                 onNavigateBack = { navController.popBackStack() },
-                onNavigateToRemovalGuide = { threatId ->
-                    navController.navigate(Screen.RemovalGuide.createRoute(threatId))
+                onNavigateToRemovalGuide = { pkg ->
+                    navController.navigate(Screen.RemovalGuide.createRoute(pkg))
                 }
             )
         }

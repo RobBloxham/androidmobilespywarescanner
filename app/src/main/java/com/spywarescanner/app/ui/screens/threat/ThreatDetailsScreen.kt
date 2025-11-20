@@ -47,7 +47,7 @@ import com.spywarescanner.app.ui.theme.CyberColors
 fun ThreatDetailsScreen(
     packageName: String,
     onNavigateBack: () -> Unit,
-    onNavigateToRemovalGuide: (Long) -> Unit,
+    onNavigateToRemovalGuide: (String) -> Unit,
     viewModel: ThreatDetailsViewModel = hiltViewModel()
 ) {
     val app by viewModel.app.collectAsState()
@@ -212,9 +212,7 @@ fun ThreatDetailsScreen(
                     GlowingButton(
                         text = "View Removal Guide",
                         onClick = {
-                            threats.firstOrNull()?.id?.let { threatId ->
-                                onNavigateToRemovalGuide(threatId)
-                            }
+                            onNavigateToRemovalGuide(packageName)
                         },
                         modifier = Modifier.fillMaxWidth(),
                         color = CyberColors.NeonOrange
