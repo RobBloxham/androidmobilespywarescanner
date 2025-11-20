@@ -130,15 +130,15 @@ class ScanRepository @Inject constructor(
     private fun calculateSecurityScore(apps: List<ScannedApp>): Int {
         if (apps.isEmpty()) return 100
 
-        val totalRisk: Int = apps.sumOf { app ->
+        val totalRisk = apps.sumOf { app ->
             when (app.threatLevel) {
                 ThreatLevel.CRITICAL -> 25
                 ThreatLevel.HIGH -> 15
                 ThreatLevel.MEDIUM -> 8
                 ThreatLevel.LOW -> 3
                 ThreatLevel.SAFE -> 0
-            }
-        }
+            }.toLong()
+        }.toInt()
 
         val maxPossibleRisk = apps.size * 25
         val riskPercentage = (totalRisk.toFloat() / maxPossibleRisk) * 100
